@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.zerock.mapper.BoardMapper">
+
+	<select id="read" resultType="com.zerock.domain.BoardVO">
+			
+		select * from test_table
+		where bno=#{bno}
+	
+	
+	</select>
+	
+		<select id="getListWithPaging" resultType="com.zerock.domain.BoardVO">
+<![CDATA[	
+	SELECT
+	 bno, title, content,
+	 writer
+	FROM
+	 (
+	  SELECT 
+	   ROW_NUMBER() OVER (ORDER BY bno DESC) rn,
+	   bno, title, content, writer
+	  FROM
+	   test_table
+	   )
+]]>
+	
+<!-- 
+
+<![CDATA[
+	 )
+	WHERE
+	 rn BETWEEN (#{pageNum} - 1) * #{amount} + 1 AND #{pageNum} * #{amount}
+]]>		 -->
+	</select>
+	
+
+<sql id="criteria">
+<where>
+	<foreach item="type" collection="typeArr" separator="OR">
+		<choose>
+			<when test="type == 'T'.toString()">
+				title LIKE '%' || #{keyword} || '%'
+			</when>
+			<when test="type == 'C'.toString()">
+				content LIKE '%' || #{keyword} || '%'
+			</when>
+			<when test="type == 'W'.toString()">
+				writer LIKE '%' || #{keyword} || '%'
+			</when>
+		</choose>
+	</foreach>
+</where>
+</sql>
+
+
+	<select id="getList" resultType="com.zerock.domain.BoardVO">
+		<![CDATA[
+				select * from test_table where bno > 0
+		]]>	
+	</select>
+
+	
+	
+	<insert id="insert">
+		insert into test_table (bno, title, content, writer)
+		values (test_table.nextval, #{title}, #{content}, #{writer})
+	</insert>
+	
+	<insert id="insertSelectKey">
+		<selectKey keyProperty="bno" order="BEFORE" resultType="long">
+		select Test_Seq.nextval from dual
+		</selectKey>
+	
+		insert into test_table (bno, title, content, writer)
+		values (#{bno}, #{title}, #{content}, #{writer})
+	</insert>
+	
+	<delete id="delete">
+		delete from test_table where bno = #{bno}
+	</delete>
+	
+	<update id="update">
+	UPDATE test_table
+	SET
+	  title = #{title},
+	  content = #{content},
+	  writer = #{writer}
+	WHERE
+	  bno = #{bno}
+	</update>
+	
+	<select id="getTotalCount" resultType="int">
+	SELECT count(*) FROM test_table	
+	<include refid="criteria"></include>
+	</select>
+	
+ 
+</mapper>
+
+
+
+
